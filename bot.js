@@ -35,7 +35,7 @@ client.config = config;
 
 client.on("ready", () => {
     // Set the bot's 'game' status to the number of servers it is in
-    client.user.setGame(`on ${client.guilds.size} servers`);
+    client.user.setActivity(`on ${client.guilds.size} servers`);
 });
 
 client.on("guildCreate", guild => {
