@@ -1,0 +1,8 @@
+# Unecessary files go!
+node_modules
+testCommand.js
+Commands
+Audio
+
+# Don't need to upload my token
+Config/authentication.json

@@ -1,0 +1,25 @@
+{
+  "name": "pandabot",
+  "version": "1.0.0",
+  "description": "Less terrible version of PandaBot. Hopefully.",
+  "main": "bot.js",
+  "scripts": {
+    "test": "test"
+  },
+  "keywords": [
+    "PandaBot",
+    "Bot",
+    "Discord",
+    "Panda"
+  ],
+  "author": "Koren",
+  "license": "ISC",
+  "dependencies": {
+    "discord.js": "^11.2.1",
+    "enmap": "^0.1.2",
+    "fs": "0.0.1-security",
+    "git": "^0.1.5",
+    "node-gyp": "^3.6.2",
+    "python": "0.0.4"
+  }
+}
