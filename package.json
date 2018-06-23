@@ -15,11 +15,11 @@
   "author": "Koren",
   "license": "ISC",
   "dependencies": {
-    "discord.js": "^11.2.1",
+    "discord.js": "^11.3.2",
     "enmap": "^0.1.2",
     "fs": "0.0.1-security",
     "git": "^0.1.5",
-    "node-gyp": "^3.6.2",
+    "node-gyp": "^3.7.0",
     "python": "0.0.4"
   }
 }
