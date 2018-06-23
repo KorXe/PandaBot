@@ -137,52 +137,7 @@ client.on("message", async message => {
         var command = message.content.split(delimiter)[0].substring(config.prefix.length);
         var suffix = message.content.substring(command.length + config.prefix.length + delimiter.length); // Take everything after the command
 
-          // Check for any special command cases
-        /*if (command === "help") {
-            // The use used the 'help' commands
-            // Show the list of all commands OR show help for a specific command
-            // if another command was passed
-            if (suffix) {
-              //var helpCmd = suffix.split(delimiter).filter(function());
-            } else {
-                message.author.send(bold + "Available Commands:" + bold).then(function() {
-                    var sortedCommands = Object.keys(commands).sort();
-                    for (var i in sortedCommands) {
-                        var batch = "";
-                        var cmd = sortedCommands[i];
-                        var info = bold + config.prefix + cmd + bold;
-                        var usage = commands[cmd].usage;
-                        if(usage) {
-                            info += " " + usage;
-                        }
-
-                        var description = commands[cmd].description;
-                        if (description instanceof Function) {
-                            desription = description();
-                        }
-
-                        if (description) {
-                            info += "\n\t" + description;
-                        }
-
-                        var newBatch = batch + "\n" + info;
-
-                        if(newBatch.length > 1016) {
-                            // limit message length
-                            message.author.send(batch);
-                            batch = info;
-                        } else {
-                            batch = newBatch;
-                        }
-
-                        if (batch.length > 0) {
-                            message.author.send(batch);
-                        }
-                    } // loop through sorted commands
-                }); // available commands' 'then' function
-            }
-        } else */if (commands[command]) {
-            // It is not a special command. Use the comand
+        if (commands[command]) {
             try {
                 commands[command].process(client, message, suffix);
             } catch (err) {
