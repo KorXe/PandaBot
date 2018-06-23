@@ -41,13 +41,13 @@ client.on("ready", () => {
 client.on("guildCreate", guild => {
     // This event triggers when the bot joins a guild.
     console.log(`New guild joined: ${guild.name} (id: ${guild.id}). This guild has ${guild.memberCount} members!`);
-    client.user.setGame(`on ${client.guilds.size} servers`);
+    client.user.setActivity(`on ${client.guilds.size} servers`);
 });
 
 client.on("guildDelete", guild => {
     // this event triggers when the bot is removed from a guild.
     console.log(`I have been removed from: ${guild.name} (id: ${guild.id})`);
-    client.user.setGame(`on ${client.guilds.size} servers`);
+    client.user.setActivity(`on ${client.guilds.size} servers`);
 });
 
 // Name: messageIsForBot
@@ -123,7 +123,29 @@ var commands = {
                 console.log(err);
             });
         }
-    } // end of announce
+    }, // end of announce
+    "summon" : {
+        usage: "<@user> (optional)<message>",
+        description: "The bot will send a message to the mentioned user, tell them their presence is requested by the sender, and pass along a message if given.",
+        process: function(bot, message, suffix) {
+            if (message.mentions.members.first() != null) {
+                // There was a member mentioned in the message. Message the user and pass along the message if given.
+                var summoned = message.mentions.members.first();
+                // var passedMessage = suffix.replace(summoned + delimiter, "");
+                var passedMessage = suffix.split(delimiter).slice(1).join(delimiter);
+                var summonMessage = summoned.user.username + ", you have been summoned by " + message.author + " in " + message.channel + " of " + message.guild + ".";
+                summonMessage += (passedMessage.length > 0) ? "\nTheir message is: " + passedMessage : "";
+                message.delete().catch(err => {
+                    console.log(err);
+                });
+                summoned.send(summonMessage);
+            } else {
+                // No user or message given. Reply with an error.
+                message.reply("Invalid use of the summon command. Please refer to " + config.prefix + "help summon for proper usage.");
+            }
+
+        }
+    }
 }
 
 // This call gets run everytime a message is put into chat
