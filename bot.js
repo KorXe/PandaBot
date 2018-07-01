@@ -25,9 +25,10 @@ const Enmap = require("enmap");
 
 // Formatting constants
 const bold = "**";
-const italic = "__";
+const italic = "_";
+const underline = "__"
 const strikethrough = "~~";
-const delimiter = " ";
+const space = " ";
 
 
 client.commands = new Enmap();
@@ -84,7 +85,7 @@ var commands = {
                 });
             } else {
                 // The author asked for help on a specific command. Send the help for that command.
-                var command = suffix.split(delimiter)[0];
+                var command = suffix.split(space)[0];
                 if (!commands[command]) {
                     // The user wanted help on a specific command, but it is not one we have. Send message stating so and show usage.
                     message.reply(bold + command + bold + " is not an available command.\n" + "Showing " + bold + "help" + bold + " usage.");
@@ -131,8 +132,7 @@ var commands = {
             if (message.mentions.members.first() != null) {
                 // There was a member mentioned in the message. Message the user and pass along the message if given.
                 var summoned = message.mentions.members.first();
-                // var passedMessage = suffix.replace(summoned + delimiter, "");
-                var passedMessage = suffix.split(delimiter).slice(1).join(delimiter);
+                var passedMessage = suffix.split(space).slice(1).join(space);
                 var summonMessage = summoned.user.username + ", you have been summoned by " + message.author + " in " + message.channel + " of " + message.guild + ".";
                 summonMessage += (passedMessage.length > 0) ? "\nTheir message is: " + passedMessage : "";
                 message.delete().catch(err => {
@@ -145,6 +145,65 @@ var commands = {
             }
 
         }
+    },
+    "roll" : {
+        usage: "<# of dice>d<dice limit> [+/- <# of dice>d<dice limit> ...]",
+        description: "The bot will roll the dice mentioned in the message. \nNote: There " + italic + "must" + italic + " be a space between dice and operators.\n" + "Example: 4d6 + 3d2 = 4 6-sided dice plus 3 2-sided dice.",
+        process: function(bot, message, suffix) {
+            // These are the only characters allowed in the command
+            const validChars = /^[d+\-0-9 ]+$/;
+            // Split the suffix on the space to separate the dice rolls from the operators
+            const arguments = suffix.split(space);
+            // This will hold an array of dice
+            // eg. !roll 1d6 => dicePairs[0] = [1,6]
+            var dicePairs = [];
+            // This will hold the operators
+            var operators = [];
+
+            // Check that the contents of the array are in the correct format
+            var validFormat = true;
+            arguments.forEach((element, index) => {
+                switch(index % 2) {
+                    case 0:
+                        const format = /^[0-9]+[d][0-9]+$/
+                        validFormat &= element.match(format) != null;
+                        dicePairs.push(element.split("d"));
+                        break;
+                    case 1:
+                        validFormat &= (element === "+" || element === "-");
+                        operators.push(element);
+                        break;
+                }
+            });
+            // Only parse the objects if the string has the valid characters, length, and operators to dice ratios.
+            if (suffix.match(validChars) && arguments.length % 2 === 1 && validFormat) {
+                // All of the dice and operators have been parsed out. Now to do the rolling and give the result
+                var resultStr = bold + "Result: " + bold;
+                var totalStr = bold + "Total: " + bold;
+                var total = 0;
+                var useOperator = false;
+                do {
+                    var dicePair = dicePairs.shift();
+                    var operator = (useOperator && operators.length > 0) ? operators.shift() : "";
+                    var rolls = [];
+                    for(k = 0; k < dicePair[0]; k++) {
+                        var rand = Math.floor(Math.random() * dicePair[1] + 1);
+                        total += (operator === "-") ? rand * -1: rand;
+                        rolls.push(rand);
+                    }
+                    // Add the roll to the value
+                    resultStr += (operator != "") ? operator + " " : operator;
+                    resultStr += dicePair.join("d") + " (" + rolls.join(", ") + ") ";
+                    useOperator = true;
+                } while (dicePairs.length > 0)
+
+                totalStr += total;
+                var responseStr = ":game_die:\n" + resultStr + "\n" + totalStr;
+                message.reply(responseStr);
+            } else {
+                message.reply("Invalid use of the roll command. Please refer to " + config.prefix + "help roll for proper usage");
+            }
+        }
     }
 }
 
@@ -156,8 +215,8 @@ client.on("message", async message => {
     if (messageIsForBot(message)) {
         // Find the command given
         // Take the first block of text before a space and strip out the command prefix
-        var command = message.content.split(delimiter)[0].substring(config.prefix.length);
-        var suffix = message.content.substring(command.length + config.prefix.length + delimiter.length); // Take everything after the command
+        var command = message.content.split(space)[0].substring(config.prefix.length);
+        var suffix = message.content.substring(command.length + config.prefix.length + space.length); // Take everything after the command
 
         if (commands[command]) {
             try {
@@ -180,46 +239,6 @@ client.on("message", async message => {
 
   client.login(authentication.token);
 /*
-client.on("message", async message => {
-
-//if (messageIsForBot(message)) { console.log("Its for me!");}
-
-// This event will run on every single message received, from any channel or DM.
-
-// It's good practice to ignore other bots. This also makes your bot ignore itself
-// and not get into a spam loop (we call that "botception").
-if(message.author.bot) return;
-
-// Also good practice to ignore any message that does not start with our prefix,
-// which is set in the configuration file.
-if(message.content.indexOf(config.prefix) !== 0) return;
-
-// Here we separate our "command" name, and our "arguments" for the command.
-// e.g. if we have the message "+say Is this the real life?" , we'll get the following:
-// command = say
-// args = ["Is", "this", "the", "real", "life?"]
-const args = message.content.slice(config.prefix.length).trim().split(/ +/g);
-const command = args.shift().toLowerCase();
-
-// Let's go with a few common example commands! Feel free to delete or change those.
-
-if(command === "ping") {
-// Calculates ping between sending a message and editing it, giving a nice round-trip latency.
-// The second ping is an average latency between the bot and the websocket server (one-way, not round-trip)
-const m = await message.channel.send("Ping?");
-m.edit(`Pong! Latency is ${m.createdTimestamp - message.createdTimestamp}ms. API Latency is ${Math.round(client.ping)}ms`);
-}
-
-if(command === "say") {
-// makes the bot say something and delete the message. As an example, it's open to anyone to use.
-// To get the "message" itself we join the `args` back into a string with spaces:
-const sayMessage = args.join(" ");
-// Then we delete the command message (sneaky, right?). The catch just ignores the error with a cute smiley thing.
-message.delete().catch(O_o=>{});
-// And we get the bot to say the thing:
-message.channel.send(sayMessage);
-}
-
 if(command === "kick") {
 // This command must be limited to mods and admins. In this example we just hardcode the role names.
 // Please read on Array.some() to understand this bit:
