@@ -165,8 +165,9 @@ var commands = {
             arguments.forEach((element, index) => {
                 switch(index % 2) {
                     case 0:
-                        const format = /^[0-9]+[d][0-9]+$/
-                        validFormat &= element.match(format) != null;
+                        const formatDice = /^[0-9]+[d][0-9]+$/
+                        const formatNum = /^[0-9]+$/
+                        validFormat &= (element.match(formatDice) != null) || (element.match(formatNum) != null);
                         dicePairs.push(element.split("d"));
                         break;
                     case 1:
@@ -178,26 +179,35 @@ var commands = {
             // Only parse the objects if the string has the valid characters, length, and operators to dice ratios.
             if (suffix.match(validChars) && arguments.length % 2 === 1 && validFormat) {
                 // All of the dice and operators have been parsed out. Now to do the rolling and give the result
-                var resultStr = bold + "Result: " + bold;
-                var totalStr = bold + "Total: " + bold;
+                var resultStr = bold + "Result:" + bold;
+                var totalStr = bold + "Total:" + bold;
                 var total = 0;
                 var useOperator = false;
                 do {
                     var dicePair = dicePairs.shift();
+                    console.log(dicePair);
                     var operator = (useOperator && operators.length > 0) ? operators.shift() : "";
                     var rolls = [];
-                    for(k = 0; k < dicePair[0]; k++) {
-                        var rand = Math.floor(Math.random() * dicePair[1] + 1);
-                        total += (operator === "-") ? rand * -1: rand;
-                        rolls.push(rand);
-                    }
                     // Add the roll to the value
-                    resultStr += (operator != "") ? operator + " " : operator;
-                    resultStr += dicePair.join("d") + " (" + rolls.join(", ") + ") ";
+                    resultStr += (useOperator) ? " " : "";
+                    resultStr += operator + " ";
+                    if (dicePair.length == 1) {
+                        // This is a singular value
+                        total += (operator === "-") ? parseInt(-dicePair[0]) : parseInt(dicePair[0]);
+                        resultStr += parseInt(dicePair[0]);
+                    } else {
+                        // This is a dice pair
+                        for(k = 0; k < dicePair[0]; k++) {
+                            var rand = Math.floor(Math.random() * dicePair[1] + 1);
+                            total += (operator === "-") ? -rand: rand;
+                            rolls.push(rand);
+                        }
+                        resultStr += dicePair.join("d") + " (" + rolls.join(", ") + ")";
+                    }
                     useOperator = true;
                 } while (dicePairs.length > 0)
 
-                totalStr += total;
+                totalStr += " " + total;
                 var responseStr = ":game_die:\n" + resultStr + "\n" + totalStr;
                 message.reply(responseStr);
             } else {
